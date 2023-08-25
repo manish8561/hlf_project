@@ -1,0 +1,346 @@
+Lan network
+10.1.6.2
+
+
+>>>>>>>>>>10.1.6.11 install docker
+ssh user@10.1.6.11
+
+
+10.1.6.16
+10.1.6.211 (ruksana) Shaikh@332
+
+
+later
+
+
+scp -r user@10.1.6.11:/home/user/Downloads/zxzx.zip /data/manish
+
+peer lifecycle chaincode queryinstalled \
+      --peerAddresses localhost:7051 \
+      --tlsRootCertFiles $ORDERER_CERTFILE 
+
+basic_1.0:b485407c1d4e6176f8a9f74f5f78c39933218511a20d861acc978c0b3e2514ab
+
+
+4150123031986
+97091987
+---------------------------------------------------------------
+
+discord channel hlf
+https://discord.com/channels/905194001349627914
+
+
+command to create channel in hlf
+./network.sh createChannel -c channel1
+
+command to deploy chaincode on network in hlf
+./network.sh -c channel1 deployCC -ccn basic -ccl go -ccp ../asset-transfer-basic/chaincode-go
+
+>>>>>>>>>>>>>>>>>>>Intreating with chaincode with cli
+
+Run the following command to initialize the ledger with assets. (Note the CLI does not access the Fabric Gateway peer, so each endorsing peer must be specified.)
+peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n basic --peerAddresses localhost:7051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" --peerAddresses localhost:9051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt" -c '{"function":"InitLedger","Args":[]}'
+
+
+Run the following command to get the list of assets that were added to your channel ledger:
+peer chaincode query -C mychannel -n basic -c '{"Args":["GetAllAssets"]}'
+
+Use the following command to change the owner of an asset on the ledger by invoking the asset-transfer (basic) chaincode:
+peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n basic --peerAddresses localhost:7051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" --peerAddresses localhost:9051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt" -c '{"function":"TransferAsset","Args":["asset6","Christopher"]}'
+
+
+
+
+>>>>>>>>>>>>>>>>>>>>>>Deploying smart contract
+steps
+We can now use the Peer CLI to deploy the asset-transfer (basic) chaincode to the channel using the following steps:
+
+Step one: Package the smart contract
+Step two: Install the chaincode package
+Step three: Approve a chaincode definition
+Step four: Committing the chaincode definition to the channel
+
+
+package command for chaincode in go
+peer lifecycle chaincode package basic.tar.gz --path ../asset-transfer-basic/chaincode-go/ --lang golang --label basic_1.0
+
+
+Issue the peer lifecycle chaincode install command to install the chaincode on the peer:
+
+peer lifecycle chaincode install basic.tar.gz
+
+create the chaincode package using the peer lifecycle chaincode package command:
+
+>>>Approve a chaincode definition
+to get package id commond on peer:
+peer lifecycle chaincode queryinstalled
+response
+Package ID: basic_1.0:e4de097efb5be42d96aebc4bde18eea848aad0f5453453ba2aad97f2e41e0d57, Label: basic_1.0
+
+export CC_PACKAGE_ID=basic_1.0:e4de097efb5be42d96aebc4bde18eea848aad0f5453453ba2aad97f2e41e0d57
+
+Approve the chaincode definition using the peer lifecycle chaincode approveformyorg command:
+peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --channelID mychannel --name basic --version 1.0 --package-id $CC_PACKAGE_ID --sequence 1 --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem"
+response
+txid [3eb365a785461b8d52ac13edb438ce57ce3a3fac7eedb348a464680daf59c254] committed with status (VALID) at localhost:9051
+
+>>>>>Committing the chaincode definition to the channel
+You can use the peer lifecycle chaincode checkcommitreadiness command:
+peer lifecycle chaincode checkcommitreadiness --channelID mychannel --name basic --version 1.0 --sequence 1 --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" --output json
+
+You can use the peer lifecycle chaincode commit command to commit the chaincode definition to the channel:
+peer lifecycle chaincode commit -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --channelID mychannel --name basic --version 1.0 --sequence 1 --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" --peerAddresses localhost:7051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" --peerAddresses localhost:9051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt"
+
+
+>>>>Invoking the chaincode
+
+peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n basic --peerAddresses localhost:7051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" --peerAddresses localhost:9051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt" -c '{"function":"InitLedger","Args":[]}'
+
+>>>Upgrading a smart contract
+export PATH=${PWD}/../bin:$PATH
+export FABRIC_CFG_PATH=$PWD/../config/
+export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp
+
+peer lifecycle chaincode package basic_2.tar.gz --path ../asset-transfer-basic/chaincode-javascript/ --lang node --label basic_2.0
+
+export CORE_PEER_TLS_ENABLED=true
+export CORE_PEER_LOCALMSPID="Org1MSP"
+export CORE_PEER_TLS_ROOTCERT_FILE=${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt
+export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp
+export CORE_PEER_ADDRESS=localhost:7051
+
+query===>
+
+Package ID: basic_1.0:e4de097efb5be42d96aebc4bde18eea848aad0f5453453ba2aad97f2e41e0d57, Label: basic_1.0
+Package ID: basic_2.0:ad8f2af70418ca6b360aaa75d9e1d847951f10a81a4f0f2f78a29020e553f0d6, Label: basic_2.0
+
+
+export NEW_CC_PACKAGE_ID=basic_2.0:ad8f2af70418ca6b360aaa75d9e1d847951f10a81a4f0f2f78a29020e553f0d6
+
+approving
+peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --channelID mychannel --name basic --version 2.0 --package-id $NEW_CC_PACKAGE_ID --sequence 2 --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem"
+
+
+-------------------------------------------------------------------------------
+Run the application
+
+deploying
+./network.sh deployCC -ccn basic -ccp ../asset-transfer-basic/chaincode-go/ -ccl go
+
+-----------------------------------------------------------------------------------
+production link hlf
+https://hyperledger-fabric.readthedocs.io/en/latest/deployment_guide_overview.html
+
+
+
+Devmode
+page for dev mode
+https://hyperledger-fabric.readthedocs.io/en/latest/peer-chaincode-devmode.html?highlight=devmode
+
+
+git clone -b release-2.5 https://github.com/hyperledger/fabric.git
+
+git clone -b v2.5.4 https://github.com/hyperledger/fabric.git
+
+make orderer peer configtxgen
+
+
+build
+go build -o auditorChaincode /data/work/projects/hlf_projects/certin/hlf-chaincode/certin-auditor
+
+go build -o auditorChaincode ./integration/chaincode/certin-auditor
+
+
+go mod vendor 
+go build -o auditorChaincode
+cp /data/work/projects/hlf_projects/certin/hlf-chaincode/certin-auditor/auditorChaincode ./
+
+version:1
+
+CORE_CHAINCODE_LOGLEVEL=debug CORE_PEER_TLS_ENABLED=false CORE_CHAINCODE_ID_NAME=auditor:1.0 ./auditorChaincode -peer.address 127.0.0.1:7052
+
+
+peer lifecycle chaincode approveformyorg  -o 127.0.0.1:7050 --channelID ch1 --name auditor --version 1.0 --sequence 1 --init-required --signature-policy "OR ('SampleOrg.member')" --package-id auditor:1.0
+peer lifecycle chaincode checkcommitreadiness -o 127.0.0.1:7050 --channelID ch1 --name auditor --version 1.0 --sequence 1 --init-required --signature-policy "OR ('SampleOrg.member')"
+peer lifecycle chaincode commit -o 127.0.0.1:7050 --channelID ch1 --name auditor --version 1.0 --sequence 1 --init-required --signature-policy "OR ('SampleOrg.member')" --peerAddresses 127.0.0.1:7051
+
+
+CORE_PEER_ADDRESS=127.0.0.1:7051 peer chaincode invoke -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["init","a","100","b","200"]}' --isInit
+CORE_PEER_ADDRESS=127.0.0.1:7051 peer chaincode invoke -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["invoke","a","b","10"]}'
+CORE_PEER_ADDRESS=127.0.0.1:7051 peer chaincode invoke -o 127.0.0.1:7050 -C ch1 -n mycc -c '{"Args":["query","a"]}'
+
+CORE_PEER_ADDRESS=127.0.0.1:7051 peer chaincode invoke -o 127.0.0.1:7050 -C ch1 -n auditor -c '{"function":"CreateAudit","Args":[]}' --transient "{\"audit_properties\":{\"auditID\":\"1\",\"name\":\"Manish Audit\", \"auditType\":\"Security Audit\", \"reason\":\"implementing on hlf blockchain\", \"tenure\":10}}" --isInit
+
+
+{"audit_properties":{"auditID":"1","name":"Manish Audit", "auditType":"Security Audit", "reason":"implementing on hlf blockchain", "tenure":10}}
+
+
+>>>>>develop and deploy in dev mode
+
+develop and deploy
+
+version:6
+CORE_CHAINCODE_LOGLEVEL=debug CORE_PEER_TLS_ENABLED=false CORE_CHAINCODE_ID_NAME=auditor:5.0 ./auditorChaincode -peer.address 127.0.0.1:7052
+
+
+peer lifecycle chaincode approveformyorg  -o 127.0.0.1:7050 --channelID ch1 --name auditor --version 5.0 --sequence 5 --init-required --signature-policy "OR ('SampleOrg.member')" --package-id auditor:5.0
+peer lifecycle chaincode checkcommitreadiness -o 127.0.0.1:7050 --channelID ch1 --name auditor --version 5.0 --sequence 5 --init-required --signature-policy "OR ('SampleOrg.member')"
+peer lifecycle chaincode commit -o 127.0.0.1:7050 --channelID ch1 --name auditor --version 5.0 --sequence 5 --init-required --signature-policy "OR ('SampleOrg.member')" --peerAddresses 127.0.0.1:7051
+
+
+export AUDIT_PROPERTIES=$(echo -n "{\"auditID\":\"1\",\"name\":\"Manish Audit\", \"auditType\":\"Security Audit\", \"reason\":\"implementing on hlf blockchain\", \"tenure\":\"10\"}" | base64 | tr -d \\n)
+
+
+CORE_PEER_ADDRESS=127.0.0.1:7051 peer chaincode invoke -o 127.0.0.1:7050 -C ch1 -n auditor -c '{"function":"Initialize","Args":["manish testing"]}' --isInit
+CORE_PEER_ADDRESS=127.0.0.1:7051 peer chaincode invoke -o 127.0.0.1:7050 -C ch1 -n auditor -c '{"function":"CreateAudit","Args":[]}' --transient "{\"audit_properties\":\"$AUDIT_PROPERTIES\"}" 
+
+SampleOrg
+
+
+
+------------------------------------------------------------------------------------
+
+monitoring cmd:
+./monitordocker.sh fabric_test
+
+package
+peer lifecycle chaincode package mycc.tar.gz --path ../chaincode/contract-tutorial/ --lang golang --label mycc_1.0
+
+install
+export CORE_PEER_TLS_ENABLED=true
+export CORE_PEER_LOCALMSPID="Org1MSP"
+export CORE_PEER_TLS_ROOTCERT_FILE=${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt
+export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp
+export CORE_PEER_ADDRESS=localhost:7051
+
+peer lifecycle chaincode install mycc.tar.gz
+
+export CORE_PEER_LOCALMSPID="Org2MSP"
+export CORE_PEER_TLS_ROOTCERT_FILE=${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt
+export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp
+export CORE_PEER_ADDRESS=localhost:9051
+
+peer lifecycle chaincode install mycc.tar.gz
+
+approve
+peer lifecycle chaincode queryinstalled
+Package ID: mycc_1.0:ebf38b054fb1c5e7a4f0fb7af8c9e19719a9ede29e0389c01d5538956175a2ba, Label: mycc_1.0
+
+
+export CC_PACKAGE_ID=mycc_1.0:ebf38b054fb1c5e7a4f0fb7af8c9e19719a9ede29e0389c01d5538956175a2ba
+
+peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --channelID mychannel --name mycc --version 1.0 --package-id $CC_PACKAGE_ID --sequence 1 --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem"
+
+export CORE_PEER_LOCALMSPID="Org1MSP"
+export CORE_PEER_MSPCONFIGPATH=${PWD}/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp
+export CORE_PEER_TLS_ROOTCERT_FILE=${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt
+export CORE_PEER_ADDRESS=localhost:7051
+
+peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --channelID mychannel --name mycc --version 1.0 --package-id $CC_PACKAGE_ID --sequence 1 --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem"
+
+commit
+peer lifecycle chaincode checkcommitreadiness --channelID mychannel --name mycc --version 1.0 --sequence 1 --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" --output json
+
+peer lifecycle chaincode commit -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --channelID mychannel --name mycc --version 1.0 --sequence 1 --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" --peerAddresses localhost:7051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" --peerAddresses localhost:9051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt"
+
+peer lifecycle chaincode querycommitted --channelID mychannel --name mycc
+
+invoke
+peer chaincode instantiate -C mychannel -n mycc -v 0 -c '{"Args":[]}'
+
+peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n mycc --peerAddresses localhost:7051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" --peerAddresses localhost:9051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt" -c '{"function":"Create","Args":["KEY_2", "VALUE_2"]}'
+
+
+peer chaincode query -C mychannel -n mycc -c '{"Args":["Read","KEY_1"]}'
+peer chaincode query -C mychannel -n mycc -c '{"Args":["Read","KEY_2"]}'
+
+
+peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n mycc --peerAddresses localhost:7051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" --peerAddresses localhost:9051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt" -c '{"function":"Update","Args":["KEY_2", "VALUE_3"]}'
+
+peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n mycc --peerAddresses localhost:7051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" --peerAddresses localhost:9051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt" -c '{"function":"Update","Args":["KEY_2", "VALUE_4"]}'
+
+--------------------------------------------------------------------
+
+private data in hlf
+
+running with couchdb
+
+deploying
+./network.sh deployCC -ccn private -ccp ../asset-transfer-private-data/chaincode-go/ -ccl go -ccep "OR('Org1MSP.peer','Org2MSP.peer')" -cccg ../asset-transfer-private-data/chaincode-go/collections_config.json
+
+approval
+Package ID: private_1.0:e1f0a711341b42ac3a10570be007de96f54608aa291fc22b0c539a20ba2d1728, Label: private_1.0
+export CC_PACKAGE_ID=private_1.0:e1f0a711341b42ac3a10570be007de96f54608aa291fc22b0c539a20ba2d1728
+
+export ORDERER_CA="${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem"
+
+peer lifecycle chaincode approveformyorg -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --channelID mychannel --name private --version 1.0 --collections-config ../asset-transfer-private-data/chaincode-go/collections_config.json --signature-policy "OR('Org1MSP.member','Org2MSP.member')" --package-id $CC_PACKAGE_ID --sequence 1 --tls --cafile $ORDERER_CA
+
+
+register identity
+fabric-ca-client register --caname ca-org1 --id.name owner --id.secret ownerpw --id.type client --tls.certfiles "${PWD}/organizations/fabric-ca/org1/tls-cert.pem"
+
+Password: ownerpw
+
+certificate
+fabric-ca-client enroll -u https://owner:ownerpw@localhost:7054 --caname ca-org1 -M "${PWD}/organizations/peerOrganizations/org1.example.com/users/owner@org1.example.com/msp" --tls.certfiles "${PWD}/organizations/fabric-ca/org1/tls-cert.pem"
+
+cp "${PWD}/organizations/peerOrganizations/org1.example.com/msp/config.yaml" "${PWD}/organizations/peerOrganizations/org1.example.com/users/owner@org1.example.com/msp/config.yaml"
+
+
+buyer
+fabric-ca-client register --caname ca-org2 --id.name buyer --id.secret buyerpw --id.type client --tls.certfiles "${PWD}/organizations/fabric-ca/org2/tls-cert.pem"
+Password: buyerpw
+--------------------------------------------------------------------------
+
+private data on network
+https://hyperledger-fabric.readthedocs.io/en/latest/private_data_tutorial.html
+
+deploying on testnetwork
+
+./network.sh down
+
+start the network with couchdb and ca
+
+./network.sh up createChannel -ca -s couchdb
+
+deploy (package -> install -> approval -> commit)
+./network.sh deployCC -ccn auditor -ccp /data/work/projects/hlf_projects/certin/hlf-chaincode/certin-auditor -ccl go -ccep "OR('Org1MSP.peer','Org2MSP.peer')" -cccg /data/work/projects/hlf_projects/certin/hlf-chaincode/certin-auditor/collections_config.json
+
+upgrade 
+ eg
+     -ccv    <version>  - Chaincode version. 1.0 (default), v2, version3.x, etc
+    -ccs 1,2,3
+
+    command: 
+
+./network.sh deployCC -ccn auditor -ccv 2.1 -ccs 3 -ccp /data/work/projects/hlf_projects/certin/hlf-chaincode/certin-auditor -ccl go -ccep "OR('Org1MSP.peer','Org2MSP.peer')" -cccg /data/work/projects/hlf_projects/certin/hlf-chaincode/certin-auditor/collections_config.json
+
+
+invoke Initialize function:
+
+peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n auditor -c '{"function":"Initialize","Args":["manish testing on test network"]}' 
+
+
+create Audit
+export AUDIT_PROPERTIES=$(echo -n "{\"auditID\":\"6\",\"name\":\"Manish Audit\", \"auditType\":\"Security Audit\", \"reason\":\"implementing on hlf blockchain4\", \"tenure\":20}" | base64 | tr -d \\n)
+peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n auditor -c '{"function":"CreateAudit","Args":[]}' --transient "{\"audit_properties\":\"$AUDIT_PROPERTIES\"}"
+
+
+purge data
+export AUDIT_PURGE=$(echo -n "{\"auditID\":\"1\"}" | base64 | tr -d \\n)
+peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n auditor -c '{"function":"PurgeAudit","Args":[]}' --transient "{\"audit_purge\":\"$AUDIT_PURGE\"}"
+
+query reading the record
+peer chaincode query -C mychannel -n auditor -c '{"function":"QueryAudit","Args":["1"]}'
+
+get state variable
+peer chaincode query -C mychannel -n auditor -c '{"function":"GetContractID","Args":[]}'
+
+get range
+peer chaincode query -C mychannel -n auditor -c '{"function":"GetAuditByRange","Args":["2","4"]}'
+
+
+
+couchdb localhost port
+http://127.0.0.1:5984/_utils/#/_all_dbs
