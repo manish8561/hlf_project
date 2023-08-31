@@ -1,0 +1,16 @@
+{
+  "dependencies": {
+    "fabric-ca-client": "^2.2.18",
+    "fabric-network": "^2.2.18"
+  },
+  "name": "hlf-backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "node app.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}

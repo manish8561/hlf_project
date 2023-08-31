@@ -65,3 +65,35 @@ func (s *SmartContract) GetAuditByRange(ctx contractapi.TransactionContextInterf
 	return results, nil
 
 }
+
+// QueryAudits uses a query string to perform a query for assets.
+// Query string matching state database syntax is passed in and executed as is.
+// Supports ad hoc queries that can be defined at runtime by the client.
+// If this is not desired, follow the QueryAuditByOwner example for parameterized queries.
+// Only available on state databases that support rich query (e.g. CouchDB)
+func (s *SmartContract) QueryAudits(ctx contractapi.TransactionContextInterface, queryString string) ([]*Audit, error) {
+
+	resultsIterator, err := ctx.GetStub().GetPrivateDataQueryResult(auditCollection, queryString)
+	if err != nil {
+		return nil, err
+	}
+	defer resultsIterator.Close()
+
+	results := []*Audit{}
+
+	for resultsIterator.HasNext() {
+		response, err := resultsIterator.Next()
+		if err != nil {
+			return nil, err
+		}
+		var asset *Audit
+
+		err = json.Unmarshal(response.Value, &asset)
+		if err != nil {
+			return nil, fmt.Errorf("failed to unmarshal JSON: %v", err)
+		}
+
+		results = append(results, asset)
+	}
+	return results, nil
+}

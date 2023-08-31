@@ -298,6 +298,7 @@ https://hyperledger-fabric.readthedocs.io/en/latest/private_data_tutorial.html
 
 deploying on testnetwork
 
+
 ./network.sh down
 
 start the network with couchdb and ca
@@ -307,6 +308,21 @@ start the network with couchdb and ca
 deploy (package -> install -> approval -> commit)
 ./network.sh deployCC -ccn auditor -ccp /data/work/projects/hlf_projects/certin/hlf-chaincode/certin-auditor -ccl go -ccep "OR('Org1MSP.peer','Org2MSP.peer')" -cccg /data/work/projects/hlf_projects/certin/hlf-chaincode/certin-auditor/collections_config.json
 
+
+registering identies
+owner
+export FABRIC_CA_CLIENT_HOME=${PWD}/organizations/peerOrganizations/org1.example.com/
+fabric-ca-client register --caname ca-org1 --id.name owner --id.secret ownerpw --id.type client --tls.certfiles "${PWD}/organizations/fabric-ca/org1/tls-cert.pem"
+fabric-ca-client enroll -u https://owner:ownerpw@localhost:7054 --caname ca-org1 -M "${PWD}/organizations/peerOrganizations/org1.example.com/users/owner@org1.example.com/msp" --tls.certfiles "${PWD}/organizations/fabric-ca/org1/tls-cert.pem"
+cp "${PWD}/organizations/peerOrganizations/org1.example.com/msp/config.yaml" "${PWD}/organizations/peerOrganizations/org1.example.com/users/owner@org1.example.com/msp/config.yaml"
+
+buyer
+export FABRIC_CA_CLIENT_HOME=${PWD}/organizations/peerOrganizations/org2.example.com/
+fabric-ca-client register --caname ca-org2 --id.name buyer --id.secret buyerpw --id.type client --tls.certfiles "${PWD}/organizations/fabric-ca/org2/tls-cert.pem"
+fabric-ca-client enroll -u https://buyer:buyerpw@localhost:8054 --caname ca-org2 -M "${PWD}/organizations/peerOrganizations/org2.example.com/users/buyer@org2.example.com/msp" --tls.certfiles "${PWD}/organizations/fabric-ca/org2/tls-cert.pem"
+cp "${PWD}/organizations/peerOrganizations/org2.example.com/msp/config.yaml" "${PWD}/organizations/peerOrganizations/org2.example.com/users/buyer@org2.example.com/msp/config.yaml"
+
+
 upgrade 
  eg
      -ccv    <version>  - Chaincode version. 1.0 (default), v2, version3.x, etc
@@ -314,7 +330,7 @@ upgrade
 
     command: 
 
-./network.sh deployCC -ccn auditor -ccv 2.1 -ccs 3 -ccp /data/work/projects/hlf_projects/certin/hlf-chaincode/certin-auditor -ccl go -ccep "OR('Org1MSP.peer','Org2MSP.peer')" -cccg /data/work/projects/hlf_projects/certin/hlf-chaincode/certin-auditor/collections_config.json
+./network.sh deployCC -ccn auditor -ccv 1.1 -ccs 2 -ccp /data/work/projects/hlf_projects/certin/hlf-chaincode/certin-auditor -ccl go -ccep "OR('Org1MSP.peer','Org2MSP.peer')" -cccg /data/work/projects/hlf_projects/certin/hlf-chaincode/certin-auditor/collections_config.json
 
 
 invoke Initialize function:
@@ -323,13 +339,35 @@ peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.exa
 
 
 create Audit
-export AUDIT_PROPERTIES=$(echo -n "{\"auditID\":\"6\",\"name\":\"Manish Audit\", \"auditType\":\"Security Audit\", \"reason\":\"implementing on hlf blockchain4\", \"tenure\":20}" | base64 | tr -d \\n)
-peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n auditor -c '{"function":"CreateAudit","Args":[]}' --transient "{\"audit_properties\":\"$AUDIT_PROPERTIES\"}"
+      export AUDIT_PROPERTIES=$(echo -n "{\"auditID\":\"1\",\"name\":\"Manish Audit\", \"auditType\":\"Security Audit\", \"reason\":\"implementing on hlf blockchain4\", \"tenure\":20}" | base64 | tr -d \\n)
+      peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n auditor -c '{"function":"CreateAudit","Args":[]}' --transient "{\"audit_properties\":\"$AUDIT_PROPERTIES\"}"
+
+      export AUDIT_PROPERTIES=$(echo -n "{\"auditID\":\"2\",\"name\":\"Manish Audit\", \"auditType\":\"Security Audit\", \"reason\":\"implementing on hlf blockchain4\", \"tenure\":20}" | base64 | tr -d \\n)
+      peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n auditor -c '{"function":"CreateAudit","Args":[]}' --transient "{\"audit_properties\":\"$AUDIT_PROPERTIES\"}"
+
+      export AUDIT_PROPERTIES=$(echo -n "{\"auditID\":\"3\",\"name\":\"Manish Audit\", \"auditType\":\"Security Audit\", \"reason\":\"implementing on hlf blockchain4\", \"tenure\":20}" | base64 | tr -d \\n)
+      peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n auditor -c '{"function":"CreateAudit","Args":[]}' --transient "{\"audit_properties\":\"$AUDIT_PROPERTIES\"}"
+
+      export AUDIT_PROPERTIES=$(echo -n "{\"auditID\":\"4\",\"name\":\"Manish Audit\", \"auditType\":\"Security Audit\", \"reason\":\"implementing on hlf blockchain4\", \"tenure\":20}" | base64 | tr -d \\n)
+      peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n auditor -c '{"function":"CreateAudit","Args":[]}' --transient "{\"audit_properties\":\"$AUDIT_PROPERTIES\"}"
+
+      export AUDIT_PROPERTIES=$(echo -n "{\"auditID\":\"5\",\"name\":\"Manish Audit\", \"auditType\":\"Security Audit\", \"reason\":\"implementing on hlf blockchain4\", \"tenure\":20}" | base64 | tr -d \\n)
+      peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n auditor -c '{"function":"CreateAudit","Args":[]}' --transient "{\"audit_properties\":\"$AUDIT_PROPERTIES\"}"
+
+      export AUDIT_PROPERTIES=$(echo -n "{\"auditID\":\"6\",\"name\":\"Manish Audit\", \"auditType\":\"Security Audit\", \"reason\":\"implementing on hlf blockchain4\", \"tenure\":20}" | base64 | tr -d \\n)
+      peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n auditor -c '{"function":"CreateAudit","Args":[]}' --transient "{\"audit_properties\":\"$AUDIT_PROPERTIES\"}"
+
+
+complete Audit report
+      export AUDIT_PROPERTIES=$(echo -n "{\"auditID\":\"1\",\"reason\":\"uploading the audit report\", \"reportFile\": \"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRx4IIu8hD6SVo27G2RDhMJk9f-qOOGr3VV4ahISQTyb70naDkys_5PNPq3CMMBNLu4zp4&usqp=CAU\"}" | base64 | tr -d \\n)
+      peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n auditor -c '{"function":"MarkAuditComplete","Args":[]}' --transient "{\"audit_properties\":\"$AUDIT_PROPERTIES\"}"
+
+
 
 
 purge data
-export AUDIT_PURGE=$(echo -n "{\"auditID\":\"1\"}" | base64 | tr -d \\n)
-peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n auditor -c '{"function":"PurgeAudit","Args":[]}' --transient "{\"audit_purge\":\"$AUDIT_PURGE\"}"
+      export AUDIT_PURGE=$(echo -n "{\"auditID\":\"1\"}" | base64 | tr -d \\n)
+      peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n auditor -c '{"function":"PurgeAudit","Args":[]}' --transient "{\"audit_purge\":\"$AUDIT_PURGE\"}"
 
 query reading the record
 peer chaincode query -C mychannel -n auditor -c '{"function":"QueryAudit","Args":["1"]}'
@@ -340,7 +378,34 @@ peer chaincode query -C mychannel -n auditor -c '{"function":"GetContractID","Ar
 get range
 peer chaincode query -C mychannel -n auditor -c '{"function":"GetAuditByRange","Args":["2","4"]}'
 
+get query string
+peer chaincode query -C mychannel -n auditor -c '{"function":"QueryAudits","Args":["{\"selector\": {}}"]}'
+
+peer chaincode query -C mychannel -n auditor -c '{"function":"QueryAudits","Args":["{\"selector\": {}, \"skip\": 2}"]}'
+
+peer0.org1.example.com|2023-08-28 13:57:20.782 UTC 00d2 WARN [couchdb] queryDocuments -> The query [{"limit":1000,"selector":{}}] caused the following warning: [No matching index found, create an index to optimize query time.]
+              couchdb0|[notice] 2023-08-28T13:57:20.783462Z nonode@nohost <0.21528.6> fabd3a51c4 couchdb0:5984 172.20.0.8 admin POST /mychannel_auditor$$paudit$collection/_find 200 ok 13
+peer0.org1.example.com|2023-08-28 13:57:20.784 UTC 00d3 INFO [endorser] callChaincode -> finished chaincode: auditor duration: 15ms channel=mychannel txID=d241af7c
+peer0.org1.example.com|2023-08-28 13:57:20.785 UTC 00d4 INFO [comm.grpc.server] 1 -> unary call completed grpc.service=protos.Endorser grpc.method=ProcessProposal grpc.peer_address=172.20.0.1:46662 grpc.code=OK grpc.call_duration=16.987375ms
+              couchdb0|[notice] 2023-08-28T13:57:53.834873Z nonode@nohost <0.21528.6> e18d65227f couchdb0:5984 172.20.0.8 admin POST /mychannel_auditor$$paudit$collection/_find 200 ok 3
+peer0.org1.example.com|2023-08-28 13:57:53.836 UTC 00d5 WARN [couchdb] queryDocuments -> The query [{"limit":1000,"selector":{},"skip":2}] caused the following warning: [No matching index found, create an index to optimize query time.]
+peer0.org1.example.com|2023-08-28 13:57:53.847 UTC 00d6 INFO [endorser] callChaincode -> finished chaincode: auditor duration: 17ms channel=mychannel txID=f0720f43
+peer0.org1.example.com|2023-08-28 13:57:53.848 UTC 00d7 INFO [comm.grpc.server] 1 -> unary call completed grpc.service=protos.Endorser grpc.method=ProcessProposal grpc.peer_address=172.20.0.1:46288 grpc.code=OK grpc.call_duration=18.235038ms
+
+
 
 
 couchdb localhost port
 http://127.0.0.1:5984/_utils/#/_all_dbs
+
+export PATH=${PWD}/../bin:${PWD}:$PATH
+export FABRIC_CFG_PATH=$PWD/../config/
+
+------------------------------------------------------------------------------------
+user identity and register and enroll with node js sdk
+https://lists.hyperledger.org/g/fabric/topic/two_ways_of_registering_a/72548542
+
+https://hyperledger-fabric.readthedocs.io/en/release-2.2/write_first_app.html
+
+code from git
+https://github1s.com/hyperledger/fabric-samples/blob/main/asset-transfer-basic/application-javascript/

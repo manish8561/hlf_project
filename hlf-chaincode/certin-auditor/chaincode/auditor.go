@@ -33,6 +33,26 @@ type Audit struct {
 	Tenure     uint      `json:"tenure"` //in days
 }
 
+// struct for create audit event
+type CreateAudit struct {
+	ID        string    `json:"ID"`
+	Name      string    `json:"name"`
+	AuditType string    `json:"auditType"`
+	CreatedAt time.Time `json:"createdAt"`
+	Status    string    `json:"status"`
+	Auditor   string    `json:"auditor"`
+	Tenure    uint      `json:"tenure"` //in days
+}
+
+// struct for complete audit event
+type CompleteAudit struct {
+	ID         string    `json:"ID"`
+	UpdatedAt  time.Time `json:"updatedAt"`
+	Reason     string    `json:"reason"`
+	Status     string    `json:"status"`
+	ReportFile string    `json:"reportFile"`
+}
+
 /**
  * inital function to state value
  */
@@ -148,11 +168,10 @@ func (s *SmartContract) CreateAudit(ctx contractapi.TransactionContextInterface)
 	// Verify that the client is submitting request to peer in their organization
 	// This is to ensure that a client from another org doesn't attempt to read or
 	// write private data from this peer.
-	// err = verifyClientOrgMatchesPeerOrg(ctx)
-	// if err != nil {
-	// 	return fmt.Errorf("CreateAudit cannot be performed: Error %v", err)
-	// }
-	log.Println("---------------4-------------------")
+	err = verifyClientOrgMatchesPeerOrg(ctx)
+	if err != nil {
+		return fmt.Errorf("CreateAudit cannot be performed: Error %v", err)
+	}
 
 	// Check if audit already exists
 	auditAsBytes, err := ctx.GetStub().GetPrivateData(auditCollection, audit.ID)
@@ -176,7 +195,119 @@ func (s *SmartContract) CreateAudit(ctx contractapi.TransactionContextInterface)
 	if err != nil {
 		return fmt.Errorf("failed to put audit into private data collecton: %v", err)
 	}
-	log.Println("---------------6-------------------")
+	//emit the create event
+	createAuditEvent := CreateAudit{audit.ID, audit.Name, audit.AuditType, audit.CreatedAt, audit.Status, audit.Auditor, audit.Tenure}
+
+	createAuditEventJSON, err := json.Marshal(createAuditEvent)
+	if err != nil {
+		return fmt.Errorf("failed to obtain JSON encoding: %v", err)
+	}
+	//including the event also for the audit
+	err = ctx.GetStub().SetEvent("CreateAudit", createAuditEventJSON)
+	if err != nil {
+		return fmt.Errorf("failed to set event: %v", err)
+	}
+
+	return nil
+}
+
+// MarkAuditComplete update on audit on the public channel. The identity that
+// submits the transacion only the auditor can make changes of the audit
+func (s *SmartContract) MarkAuditComplete(ctx contractapi.TransactionContextInterface) error {
+
+	// get ID of submitting client
+	clientID, err := submittingClientIdentity(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get client identity %v", err)
+	}
+	// Verify that the client is submitting request to peer in their organization
+	// This is to ensure that a client from another org doesn't attempt to read or
+	// write private data from this peer.
+	err = verifyClientOrgMatchesPeerOrg(ctx)
+	if err != nil {
+		return fmt.Errorf("CreateAudit cannot be performed: Error %v", err)
+	}
+
+	// Get new audit from transient map
+	transientMap, err := ctx.GetStub().GetTransient()
+	if err != nil {
+		return fmt.Errorf("error getting transient: %v", err)
+	}
+
+	// audit properties are private, therefore they get passed in transient field, instead of func args
+	transientAuditJSON, ok := transientMap["audit_properties"]
+	if !ok {
+		//log error to stdout
+		return fmt.Errorf("audit properties not found in the transient map input")
+	}
+
+	type auditTransientInput struct {
+		ID         string `json:"auditID"`
+		ReportFile string `json:"reportFile"`
+		Reason     string `json:"reason"`
+	}
+	var auditInput auditTransientInput
+	err = json.Unmarshal(transientAuditJSON, &auditInput)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal JSON: %v", err)
+	}
+
+	if len(auditInput.ReportFile) == 0 {
+		return fmt.Errorf("Report File field must be a non-empty string")
+	}
+
+	if len(auditInput.ID) == 0 {
+		return fmt.Errorf("auditID field must be a non-empty string")
+	}
+	if len(auditInput.Reason) == 0 {
+		return fmt.Errorf("Reason field must be a non-empty string")
+	}
+
+	//get audit
+	audit, err := s.QueryAudit(ctx, auditInput.ID)
+	if err != nil {
+		return fmt.Errorf("error reading audit: %v", err)
+	}
+	if audit == nil {
+		return fmt.Errorf("%v does not exist", auditInput.ID)
+	}
+	//checking auditor
+	if audit.Auditor != clientID {
+		return fmt.Errorf("%v is not owner of the audit", clientID)
+	}
+
+	// Save audit to private data collection
+	// Typical logger, logs to stdout/file in the fabric managed docker container, running this chaincode
+	// Look for container name like dev-peer0.org1.example.com-{chaincodename_version}-xyz
+	log.Printf("CreateAudit Put: collection %v, ID %v, owner %v", auditCollection, audit.ID, clientID)
+
+	//change the values
+	audit.ReportFile = auditInput.ReportFile
+	audit.Reason = auditInput.Reason
+	audit.Status = "complete"
+	audit.UpdatedAt = time.Now()
+
+	auditJSONBytes, err := json.Marshal(audit)
+	if err != nil {
+		return fmt.Errorf("failed marshalling audit %v: %v", audit.ID, err)
+	}
+
+	err = ctx.GetStub().PutPrivateData(auditCollection, audit.ID, auditJSONBytes)
+	if err != nil {
+		return fmt.Errorf("failed to put audit into private data collecton: %v", err)
+	}
+	//emit the complete event
+	completeAuditEvent := CompleteAudit{audit.ID, audit.UpdatedAt, audit.Reason, audit.Status, audit.ReportFile}
+
+	completeAuditEventJSON, err := json.Marshal(completeAuditEvent)
+	if err != nil {
+		return fmt.Errorf("failed to obtain JSON encoding: %v", err)
+	}
+	//including the event also for the audit
+	err = ctx.GetStub().SetEvent("CompleteAudit", completeAuditEventJSON)
+	if err != nil {
+		return fmt.Errorf("failed to set event: %v", err)
+	}
 
 	return nil
 }
@@ -228,7 +359,6 @@ func (s *SmartContract) PurgeAudit(ctx contractapi.TransactionContextInterface) 
 	}
 
 	return nil
-
 }
 
 // verifyClientOrgMatchesPeerOrg is an internal function used verify client org id and matches peer org id.
@@ -248,6 +378,7 @@ func verifyClientOrgMatchesPeerOrg(ctx contractapi.TransactionContextInterface) 
 
 	return nil
 }
+
 /**
  * submit id of the client id
  */
